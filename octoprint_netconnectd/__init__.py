@@ -93,12 +93,12 @@ class NetconnectdSettingsPlugin(octoprint.plugin.SettingsPlugin,
 			return make_response("Insufficient rights", 403)
 
 		if command == "configure_wifi":
-			if data["psk"]:
+			if 'psk' in data:
 				self._logger.info("Configuring wifi {ssid} and psk...".format(**data))
+				self._configure_and_select_wifi(data["ssid"], data["psk"], force=data["force"] if "force" in data else False)
 			else:
 				self._logger.info("Configuring wifi {ssid}...".format(**data))
-
-			self._configure_and_select_wifi(data["ssid"], data["psk"], force=data["force"] if "force" in data else False)
+				self._configure_and_select_wifi_open(data["ssid"], force=data["force"] if "force" in data else False)
 
 		elif command == "forget_wifi":
 			self._forget_wifi()
@@ -153,6 +153,15 @@ class NetconnectdSettingsPlugin(octoprint.plugin.SettingsPlugin,
 			psk=psk,
 			force=force
 		)
+
+
+	def _configure_and_select_wifi_open(self, ssid, force=False):
+		payload = dict(
+			ssid=ssid,
+			force=force
+		)
+
+
 
 		flag, content = self._send_message("config_wifi", payload)
 		if not flag:
